@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Settings</title>
+
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+<body>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<div class="container">
+
+    <h1>&#9881;&#65039; Settings</h1>
+
+    <!-- Appearance -->
+    <div class="setting-card">
+
+        <h2>&#127912; Appearance</h2>
+
+        <label>
+            <input type="radio" name="theme" value="light" checked>
+            Light Mode
+        </label>
+
+        <label>
+            <input type="radio" name="theme" value="dark">
+            Dark Mode
+        </label>
+
+    </div>
+
+    <!-- Language -->
+    <div class="setting-card">
+
+        <h2>&#127760; Language</h2>
+
+        <select id="language" onchange="changeLanguage(this.value)">
+
+            <option value="English">🇬🇧 English</option>
+
+            <option value="Telugu">🇮🇳 తెలుగు</option>
+
+            <option value="Hindi">🇮🇳 हिन्दी</option>
+
+            <option value="Kannada">🇮🇳 ಕನ್ನಡ</option>
+
+            <option value="Tamil">🇮🇳 தமிழ்</option>
+
+            <option value="Malayalam">🇮🇳 മലയാളം</option>
+
+        </select>
+
+    </div>
+
+    <!-- Notifications -->
+    <div class="setting-card">
+
+        <h2>&#128276; Notifications</h2>
+
+        <label class="switch">
+
+            <input type="checkbox" id="notificationToggle" checked>
+
+            <span class="slider"></span>
+
+        </label>
+
+    </div>
+
+    <!-- Data -->
+    <div class="setting-card">
+
+        <h2>&#128450;&#65039; Data</h2>
+
+        <button onclick="clearHistory()">
+            Clear History
+        </button>
+
+        <button onclick="clearSearchHistory()">
+            Clear Search History
+        </button>
+
+        <button onclick="clearFavorites()">
+            Clear Favorites
+        </button>
+
+        <button onclick="clearAllData()">
+            Clear All Data
+        </button>
+
+    </div>
+</div>
+
+<script>
+
+    // =======================================
+    // PAGE LOAD
+    // =======================================
+
+    window.onload = function () {
+
+        // -----------------------------
+        // Theme
+        // -----------------------------
+
+        const themeRadios = document.querySelectorAll("input[name='theme']");
+        const savedTheme = localStorage.getItem("theme") || "light";
+
+        themeRadios.forEach(radio => {
+
+            if(radio.value === savedTheme){
+                radio.checked = true;
+            }
+
+            radio.addEventListener("change", function(){
+
+                localStorage.setItem("theme", this.value);
+
+                applyTheme(this.value);
+
+            });
+
+        });
+
+        applyTheme(savedTheme);
+
+
+        // -----------------------------
+        // Language
+        // -----------------------------
+
+        const language = document.getElementById("language");
+
+        language.value =
+            localStorage.getItem("language") || "English";
+
+        language.addEventListener("change", function(){
+
+            localStorage.setItem("language", this.value);
+
+            if(typeof changeLanguage === "function"){
+
+                changeLanguage(this.value);
+
+            }
+
+        });
+
+
+        // -----------------------------
+        // Notifications
+        // -----------------------------
+
+        const notificationToggle =
+            document.getElementById("notificationToggle");
+
+        notificationToggle.checked =
+            localStorage.getItem("notifications") !== "false";
+
+        notificationToggle.onchange = function(){
+
+            localStorage.setItem(
+                "notifications",
+                this.checked
+            );
+
+        };
+
+    };
+
+
+    // =======================================
+    // APPLY THEME
+    // =======================================
+
+    function applyTheme(theme){
+
+        if(theme === "dark"){
+
+            document.body.classList.add("dark-mode");
+
+        }else{
+
+            document.body.classList.remove("dark-mode");
+
+        }
+
+    }
+
+
+    // =======================================
+    // CLEAR FAVORITES
+    // =======================================
+
+    function clearFavorites(){
+
+        const userId = localStorage.getItem("userId");
+
+        if(!userId){
+
+            alert("Please Login First");
+
+            return;
+
+        }
+
+        if(!confirm("Are you sure you want to clear all favorite brands?")){
+
+            return;
+
+        }
+
+        fetch("/api/favorites/clear/" + userId,{
+
+            method:"DELETE"
+
+        })
+
+            .then(response=>{
+
+                if(response.ok){
+
+                    alert("All Favorite Brands Cleared");
+
+                }else{
+
+                    alert("Unable to clear favorites.");
+
+                }
+
+            })
+
+            .catch(error=>{
+
+                console.error(error);
+
+                alert("Server Error");
+
+            });
+
+    }
+
+
+    // =======================================
+    // CLEAR HISTORY
+    // =======================================
+
+    function clearHistory(){
+
+        const userId = localStorage.getItem("userId");
+
+        if(!userId){
+
+            alert("Please Login First");
+
+            return;
+
+        }
+
+        if(!confirm("Are you sure you want to clear all history?")){
+
+            return;
+
+        }
+
+        fetch("/api/history/clear/" + userId,{
+
+            method:"DELETE"
+
+        })
+
+            .then(response=>{
+
+                if(response.ok){
+
+                    alert("History Cleared Successfully");
+
+                }else{
+
+                    alert("Unable to clear history.");
+
+                }
+
+            })
+
+            .catch(error=>{
+
+                console.error(error);
+
+                alert("Server Error");
+
+            });
+
+    }
+
+
+    // =======================================
+    // CLEAR SEARCH HISTORY
+    // =======================================
+
+    function clearSearchHistory(){
+
+        const userId = localStorage.getItem("userId");
+
+        if(!userId){
+
+            alert("Please Login First");
+
+            return;
+
+        }
+
+        if(!confirm("Are you sure you want to clear search history?")){
+
+            return;
+
+        }
+
+        fetch("/api/search/clear/" + userId,{
+
+            method:"DELETE"
+
+        })
+
+            .then(response=>{
+
+                if(response.ok){
+
+                    alert("Search History Cleared");
+
+                }else{
+
+                    alert("Unable to clear search history.");
+
+                }
+
+            })
+
+            .catch(error=>{
+
+                console.error(error);
+
+                alert("Server Error");
+
+            });
+
+    }
+
+
+    // =======================================
+    // CLEAR ALL DATA
+    // =======================================
+
+    function clearAllData(){
+
+        const userId = localStorage.getItem("userId");
+
+        if(!userId){
+
+            alert("Please Login First");
+
+            return;
+
+        }
+
+        if(!confirm("This will clear all your data. Continue?")){
+
+            return;
+
+        }
+
+        fetch("/api/user/clear/" + userId,{
+
+            method:"DELETE"
+
+        })
+
+            .then(response=>{
+
+                if(response.ok){
+
+                    localStorage.clear();
+
+                    alert("All Data Cleared");
+
+                    window.location.href="/";
+
+                }else{
+
+                    alert("Unable to clear all data.");
+
+                }
+
+            })
+
+            .catch(error=>{
+
+                console.error(error);
+
+                alert("Server Error");
+
+            });
+
+    }
+
+</script>
+
+
+</body>
+</html>
