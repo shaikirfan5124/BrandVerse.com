@@ -32,37 +32,44 @@
     </form>
 
 </div>
-
-
 <script>
-
-    // Signup Form Submit
-    document.getElementById("signupForm").addEventListener("submit", async function(event){
-
+    document.getElementById("signupForm").addEventListener("submit", function(event) {
         event.preventDefault();
 
-        const user = {
-            fullName: document.getElementById("fullname").value,
-            email: document.getElementById("email").value,
-            password: document.getElementById("password").value
+        const fullName = document.getElementById("fullname").value.trim();
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        // Get existing users from localStorage (or empty array if none)
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+
+        // Check if email is already registered
+        const userExists = users.some(u => u.email === email);
+        if (userExists) {
+            alert("Email already registered! Please login.");
+            return;
+        }
+
+        // Create and save new user
+        const newUser = {
+            id: Date.now(),
+            fullName: fullName,
+            email: email,
+            password: password
         };
 
-        const response = await fetch("http://localhost:8080/api/signup", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(user)
-        });
+        users.push(newUser);
+        localStorage.setItem("users", JSON.stringify(users));
 
-        if(response.ok){
-            alert("Signup Successful!");
-            window.location.href = "login.html";
-        }else{
-            alert("Signup Failed!");
-        }
+        alert("Signup Successful!");
+        window.location.href = "login.html";
     });
-
 </script>
 
 <script>
