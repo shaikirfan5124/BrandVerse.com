@@ -29,63 +29,31 @@
 </div>
 
 <script>
-
-    // Login Form Submit
-    document.getElementById("loginForm").addEventListener("submit", async function(event){
-
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
         event.preventDefault();
 
-        const email = document.getElementById("email").value;
+        const email = document.getElementById("email").value.trim().toLowerCase();
         const password = document.getElementById("password").value;
 
-        const loginData = {
-            email: email,
-            password: password
-        };
+        // Get stored users from localStorage
+        const users = JSON.parse(localStorage.getItem("users")) || [];
 
-        try{
+        // Find matching user
+        const matchedUser = users.find(u => u.email === email && u.password === password);
 
-            const response = await fetch("http://localhost:8080/api/login",{
+        if (matchedUser) {
+            // Save active session (matches what index.html expects)
+            localStorage.setItem("loggedInUser", JSON.stringify(matchedUser));
+            localStorage.setItem("userId", matchedUser.id);
+            localStorage.setItem("userName", matchedUser.fullName);
 
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify(loginData)
-
-            });
-
-            if(response.ok){
-
-                const user = await response.json();
-
-                console.log("User Object:", user);
-                console.log("User ID:", user.id);
-
-                // Save logged-in user
-                localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-                // Save user ID
-                localStorage.setItem("userId", user.id);
-
-                // Save user name
-                localStorage.setItem("userName", user.fullName);
-
-                console.log("User Saved:", user);
-
-                window.location.href = "index.html";
-
-            }else{
-
-                console.log("Invalid Email or Password");
-
-            }
-
-        }catch(error){
-
-            console.log(error);
+            alert("Login Successful!");
+            window.location.href = "index.html";
+        } else {
+            alert("Invalid Email or Password!");
+        }
+    });
+</script>
 
             alert("Server Error!");
 
