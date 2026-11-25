@@ -232,11 +232,9 @@
 
 <script>
     // ======================================
-    // ❤️ Add / Remove Favorite
+    // ❤️ Add / Remove Favorite (localStorage)
     // ======================================
-
     function addFavorite(event, name, image, link) {
-
         event.stopPropagation();
 
         const button = event.target;
@@ -248,240 +246,130 @@
             return;
         }
 
+        // Get existing favorites from localStorage
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
         // ============================
         // Remove Favorite
         // ============================
-// Remove Favourite
-        if(button.classList.contains("active")){
+        if (button.classList.contains("active")) {
+            favorites = favorites.filter(
+                fav => !(fav.userId === userId && fav.brandName === name)
+            );
+            localStorage.setItem("favorites", JSON.stringify(favorites));
 
-            const favoriteId = button.dataset.favoriteId;
-
-            fetch("http://localhost:8080/api/favorites/" + favoriteId,{
-
-                method:"DELETE"
-
-            })
-
-                .then(response=>{
-
-                    if(!response.ok){
-
-                        throw new Error("Delete Failed");
-
-                    }
-
-                    button.classList.remove("active");
-
-                    delete button.dataset.favoriteId;
-
-                    showMessage(name + " removed from Favorites 💔");
-
-                })
-
-                .catch(error=>console.log(error));
-
+            button.classList.remove("active");
+            delete button.dataset.favoriteId;
+            showMessage(name + " removed from Favorites 💔");
             return;
         }
-
 
         // ============================
         // Add Favorite
         // ============================
-        fetch("http://localhost:8080/api/favorites", {
+        const newFavorite = {
+            id: Date.now(),
+            userId: userId,
+            name: name,
+            brandName: name,
+            logo: image,
+            image: image,
+            website: link
+        };
 
-            method: "POST",
+        favorites.push(newFavorite);
+        localStorage.setItem("favorites", JSON.stringify(favorites));
 
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-
-                userId: userId,
-                brandName: name,
-                image: image,
-                website: link
-
-            })
-
-        })
-
-            .then(response => {
-
-                if (!response.ok) throw new Error("Add Failed");
-
-                return response.json();
-
-            })
-
-            .then(data => {
-
-                button.classList.add("active");
-
-                button.dataset.favoriteId = data.id;
-
-                showMessage(name + " added to Favorites ❤️");
-
-            })
-
-            .catch(error => console.log(error));
-
+        button.classList.add("active");
+        button.dataset.favoriteId = newFavorite.id;
+        showMessage(name + " added to Favorites ❤️");
     }
+
     // ======================================
     // Toast Message
     // ======================================
-
-    function showMessage(message){
-
+    function showMessage(message) {
         const toast = document.getElementById("toast");
-
+        if (!toast) return;
         toast.textContent = message;
-
         toast.classList.add("show");
 
         setTimeout(() => {
-
             toast.classList.remove("show");
-
-        },2000);
-
+        }, 2000);
     }
 
-
-
-</script>
-
-
-
-<script>
-
     // ======================================
-    // Load Favorite Hearts
+    // Load Favorite Hearts (localStorage)
     // ======================================
-
     window.addEventListener("load", () => {
-
         const userId = localStorage.getItem("userId");
-
         if (!userId) return;
 
-        fetch("http://localhost:8080/api/favorites/" + userId)
+        const allFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const userFavorites = allFavorites.filter(f => f.userId === userId);
 
-            .then(response => response.json())
+        document.querySelectorAll(".heart-btn").forEach(btn => {
+            const brandBox = btn.closest(".brand-box");
+            const brandName = brandBox.querySelector("h3").innerText;
+            const fav = userFavorites.find(f => f.brandName === brandName);
 
-            .then(favorites => {
-
-                document.querySelectorAll(".heart-btn").forEach(btn => {
-
-                    const brandBox = btn.closest(".brand-box");
-
-                    const brandName = brandBox.querySelector("h3").innerText;
-
-                    const fav = favorites.find(f => f.brandName === brandName);
-
-                    if(fav){
-
-                        btn.classList.add("active");
-
-                        // Save database ID on button
-                        btn.dataset.favoriteId = fav.id;
-
-                    }
-
-                });
-
-            });
-
+            if (fav) {
+                btn.classList.add("active");
+                btn.dataset.favoriteId = fav.id;
+            }
+        });
     });
-</script>
-
-
-
-<script>
 
     // ======================================
-    // Save History to MySQL
+    // Save History (localStorage)
     // ======================================
-
-    function saveHistory(name, image, website){
-
+    function saveHistory(name, image, website) {
         const userId = localStorage.getItem("userId");
-
-        if(!userId){
-            return;
-        }
+        if (!userId) return;
 
         const now = new Date();
+        const dateStr = now.toLocaleDateString();
+        const timeStr = now.toLocaleTimeString();
+        const history = JSON.parse(localStorage.getItem("history")) || [];
 
-        fetch("http://localhost:8080/api/history",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                userId:Number(userId),
-                brandName:name,
-                image:image,
-                website:website,
-                visitDate:now.toLocaleDateString(),
-                visitTime:now.toLocaleTimeString()
-            })
-        })
-            .then(async response => {
+        const newEntry = {
+            id: Date.now(),
+            userId: userId,
+            name: name,
+            brandName: name,
+            logo: image,
+            image: image,
+            website: website,
+            date: dateStr,
+            visitDate: dateStr,
+            time: timeStr,
+            visitTime: timeStr
+        };
 
-                const text = await response.text();
-
-                console.log("Status:", response.status);
-                console.log("Response:", text);
-
-                if(!response.ok){
-                    alert("History Save Failed");
-                }else{
-                    console.log("History Saved Successfully");
-                }
-
-            })
-            .catch(error => {
-
-                console.error(error);
-
-            });
-
+        history.push(newEntry);
+        localStorage.setItem("history", JSON.stringify(history));
     }
 
     // ======================================
     // Open Brand
     // ======================================
-
-    function openBrand(name, image, website){
-
-        console.log("openBrand called");
-
+    function openBrand(name, image, website) {
         saveHistory(name, image, website);
-
         window.location.href = website;
-
     }
 
-</script>
-
-<script>
-
+    // ======================================
     // Apply Theme on Page Load
-
-    window.onload = function(){
-
+    // ======================================
+    window.addEventListener("load", () => {
         const theme = localStorage.getItem("theme");
-
-        if(theme === "dark"){
-
+        if (theme === "dark") {
             document.body.classList.add("dark-mode");
-
         }
-
-    };
-
+    });
 </script>
+
 
 </body>
 </html>
