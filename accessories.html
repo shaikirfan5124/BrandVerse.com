@@ -228,258 +228,146 @@
 
     <div id="toast"></div>
 
-    <script>
-        // ======================================
-        // ❤️ Add / Remove Favorite
-        // ======================================
+<script>
+    // ======================================
+    // ❤️ Add / Remove Favorite (localStorage)
+    // ======================================
+    function addFavorite(event, name, image, link) {
+        event.stopPropagation();
 
-        function addFavorite(event, name, image, link) {
+        const button = event.target;
+        const userId = localStorage.getItem("userId");
 
-            event.stopPropagation();
-
-            const button = event.target;
-            const userId = localStorage.getItem("userId");
-
-            // Check Login
-            if (!userId) {
-                alert("Please Login First!");
-                return;
-            }
-
-            // ============================
-            // Remove Favorite
-            // ============================
-// Remove Favourite
-            if(button.classList.contains("active")){
-
-                const favoriteId = button.dataset.favoriteId;
-
-                fetch("http://localhost:8080/api/favorites/" + favoriteId,{
-
-                    method:"DELETE"
-
-                })
-
-                    .then(response=>{
-
-                        if(!response.ok){
-
-                            throw new Error("Delete Failed");
-
-                        }
-
-                        button.classList.remove("active");
-
-                        delete button.dataset.favoriteId;
-
-                        showMessage(name + " removed from Favorites 💔");
-
-                    })
-
-                    .catch(error=>console.log(error));
-
-                return;
-            }
-
-
-            // ============================
-            // Add Favorite
-            // ============================
-            fetch("http://localhost:8080/api/favorites", {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    userId: userId,
-                    brandName: name,
-                    image: image,
-                    website: link
-
-                })
-
-            })
-
-                .then(response => {
-
-                    if (!response.ok) throw new Error("Add Failed");
-
-                    return response.json();
-
-                })
-
-                .then(data => {
-
-                    button.classList.add("active");
-
-                    button.dataset.favoriteId = data.id;
-
-                    showMessage(name + " added to Favorites ❤️");
-
-                })
-
-                .catch(error => console.log(error));
-
-        }
-        // ======================================
-        // Toast Message
-        // ======================================
-
-        function showMessage(message){
-
-            const toast = document.getElementById("toast");
-
-            toast.textContent = message;
-
-            toast.classList.add("show");
-
-            setTimeout(() => {
-
-                toast.classList.remove("show");
-
-            },2000);
-
+        // Check Login
+        if (!userId) {
+            alert("Please Login First!");
+            return;
         }
 
+        // Get existing favorites from localStorage
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 
+        // ============================
+        // Remove Favorite
+        // ============================
+        if (button.classList.contains("active")) {
+            favorites = favorites.filter(
+                fav => !(fav.userId === userId && fav.brandName === name)
+            );
+            localStorage.setItem("favorites", JSON.stringify(favorites));
 
-    </script>
-
-
-
-    <script>
-
-        // ======================================
-        // Load Favorite Hearts
-        // ======================================
-
-        window.addEventListener("load", () => {
-
-            const userId = localStorage.getItem("userId");
-
-            if (!userId) return;
-
-            fetch("http://localhost:8080/api/favorites/" + userId)
-
-                .then(response => response.json())
-
-                .then(favorites => {
-
-                    document.querySelectorAll(".heart-btn").forEach(btn => {
-
-                        const brandBox = btn.closest(".brand-box");
-
-                        const brandName = brandBox.querySelector("h3").innerText;
-
-                        const fav = favorites.find(f => f.brandName === brandName);
-
-                        if(fav){
-
-                            btn.classList.add("active");
-
-                            // Save database ID on button
-                            btn.dataset.favoriteId = fav.id;
-
-                        }
-
-                    });
-
-                });
-
-        });
-    </script>
-
-
-
-    <script>
-
-        // ======================================
-        // Save History to MySQL
-        // ======================================
-
-        function saveHistory(name, image, website){
-
-            const userId = localStorage.getItem("userId");
-
-            if(!userId){
-                return;
-            }
-
-            const now = new Date();
-
-            fetch("http://localhost:8080/api/history",{
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    userId:Number(userId),
-                    brandName:name,
-                    image:image,
-                    website:website,
-                    visitDate:now.toLocaleDateString(),
-                    visitTime:now.toLocaleTimeString()
-                })
-            })
-                .then(async response => {
-
-                    const text = await response.text();
-
-                    console.log("Status:", response.status);
-                    console.log("Response:", text);
-
-                    if(!response.ok){
-                        alert("History Save Failed");
-                    }else{
-                        console.log("History Saved Successfully");
-                    }
-
-                })
-                .catch(error => {
-
-                    console.error(error);
-
-                });
-
+            button.classList.remove("active");
+            delete button.dataset.favoriteId;
+            showMessage(name + " removed from Favorites 💔");
+            return;
         }
 
-        // ======================================
-        // Open Brand
-        // ======================================
-
-        function openBrand(name, image, website){
-
-            console.log("openBrand called");
-
-            saveHistory(name, image, website);
-
-            window.location.href = website;
-
-        }
-
-    </script>
-
-    <script>
-
-        // Apply Theme on Page Load
-
-        window.onload = function(){
-
-            const theme = localStorage.getItem("theme");
-
-            if(theme === "dark"){
-
-                document.body.classList.add("dark-mode");
-
-            }
-
+        // ============================
+        // Add Favorite
+        // ============================
+        const newFavorite = {
+            id: Date.now(),
+            userId: userId,
+            name: name,
+            brandName: name,
+            logo: image,
+            image: image,
+            website: link
         };
 
-    </script>
+        favorites.push(newFavorite);
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+
+        button.classList.add("active");
+        button.dataset.favoriteId = newFavorite.id;
+        showMessage(name + " added to Favorites ❤️");
+    }
+
+    // ======================================
+    // Toast Message
+    // ======================================
+    function showMessage(message) {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2000);
+    }
+
+    // ======================================
+    // Load Favorite Hearts (localStorage)
+    // ======================================
+    window.addEventListener("load", () => {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        const allFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const userFavorites = allFavorites.filter(f => f.userId === userId);
+
+        document.querySelectorAll(".heart-btn").forEach(btn => {
+            const brandBox = btn.closest(".brand-box");
+            const brandName = brandBox.querySelector("h3").innerText;
+            const fav = userFavorites.find(f => f.brandName === brandName);
+
+            if (fav) {
+                btn.classList.add("active");
+                btn.dataset.favoriteId = fav.id;
+            }
+        });
+    });
+
+    // ======================================
+    // Save History (localStorage)
+    // ======================================
+    function saveHistory(name, image, website) {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString();
+        const timeStr = now.toLocaleTimeString();
+        const history = JSON.parse(localStorage.getItem("history")) || [];
+
+        const newEntry = {
+            id: Date.now(),
+            userId: userId,
+            name: name,
+            brandName: name,
+            logo: image,
+            image: image,
+            website: website,
+            date: dateStr,
+            visitDate: dateStr,
+            time: timeStr,
+            visitTime: timeStr
+        };
+
+        history.push(newEntry);
+        localStorage.setItem("history", JSON.stringify(history));
+    }
+
+    // ======================================
+    // Open Brand
+    // ======================================
+    function openBrand(name, image, website) {
+        saveHistory(name, image, website);
+        window.location.href = website;
+    }
+
+    // ======================================
+    // Apply Theme on Page Load
+    // ======================================
+    window.addEventListener("load", () => {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+    });
+</script>
+
 
 </body>
 </html>
