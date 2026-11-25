@@ -146,75 +146,59 @@
 
 
 
-    <script>
+<script>
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
-        const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (user) {
+        document.getElementById("profileName").innerText = user.fullName;
+        document.getElementById("profileEmail").innerText = user.email;
+        document.getElementById("accountName").innerText = user.fullName;
+        document.getElementById("accountEmail").innerText = user.email;
+        document.getElementById("userId").innerText = user.id;
 
-        if(user){
-
-            document.getElementById("profileName").innerText = user.fullName;
-
-            document.getElementById("profileEmail").innerText = user.email;
-
-            document.getElementById("accountName").innerText = user.fullName;
-
-            document.getElementById("accountEmail").innerText = user.email;
-
-            document.getElementById("userId").innerText = user.id;
-
-            if(user.createdAt){
-
-                const date = new Date(user.createdAt);
-
-                document.getElementById("memberSince").innerText =
-                    "Member Since : " + date.toLocaleDateString();
-
-            }else{
-
-                document.getElementById("memberSince").innerText =
-                    "Member Since : Today";
-
-            }
-
-        }else{
-
-            alert("Please Login First!");
-
-            window.location.href = "login.html";
-
+        if (user.createdAt) {
+            const date = new Date(user.createdAt);
+            document.getElementById("memberSince").innerText =
+                "Member Since : " + date.toLocaleDateString();
+        } else {
+            document.getElementById("memberSince").innerText =
+                "Member Since : Today";
         }
 
-    </script>
-
-    <script>
-
-
-        const userId = user.id;
+        const currentUserId = String(user.id);
 
         // ===============================
-        // Load Favorites Count from MySQL
+        // Load Favorites Count from localStorage
         // ===============================
-        fetch("http://localhost:8080/api/favorites/" + userId)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("favoriteCount").innerText = data.length;
-            })
-            .catch(error => console.error(error));
+        const allFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const userFavorites = allFavorites.filter(f => String(f.userId) === currentUserId);
+        document.getElementById("favoriteCount").innerText = userFavorites.length;
 
         // ===============================
-        // Load History Count from MySQL
+        // Load History Count from localStorage
         // ===============================
-        fetch("http://localhost:8080/api/history/" + userId)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("historyCount").innerText = data.length;
-            })
-            .catch(error => console.error(error));
+        const allHistory = JSON.parse(localStorage.getItem("history")) || [];
+        const userHistory = allHistory.filter(h => String(h.userId) === currentUserId);
+        document.getElementById("historyCount").innerText = userHistory.length;
 
         // Total Categories
         document.getElementById("categoryCount").innerText = 8;
 
-    </script>
+    } else {
+        alert("Please Login First!");
+        window.location.href = "login.html";
+    }
+
+    // ===============================
+    // Apply Theme on Page Load
+    // ===============================
+    window.addEventListener("load", () => {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+    });
+</script>
 
 </body>
 </html>
