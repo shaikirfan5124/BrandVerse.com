@@ -399,7 +399,9 @@
         const newFavorite = {
             id: Date.now(),
             userId: userId,
+            name: name,
             brandName: name,
+            logo: image,
             image: image,
             website: link
         };
@@ -417,6 +419,7 @@
     // ======================================
     function showMessage(message) {
         const toast = document.getElementById("toast");
+        if (!toast) return;
         toast.textContent = message;
         toast.classList.add("show");
 
@@ -455,16 +458,22 @@
         if (!userId) return;
 
         const now = new Date();
+        const dateStr = now.toLocaleDateString();
+        const timeStr = now.toLocaleTimeString();
         const history = JSON.parse(localStorage.getItem("history")) || [];
 
         const newEntry = {
             id: Date.now(),
             userId: userId,
+            name: name,
             brandName: name,
+            logo: image,
             image: image,
             website: website,
-            visitDate: now.toLocaleDateString(),
-            visitTime: now.toLocaleTimeString()
+            date: dateStr,
+            visitDate: dateStr,
+            time: timeStr,
+            visitTime: timeStr
         };
 
         history.push(newEntry);
