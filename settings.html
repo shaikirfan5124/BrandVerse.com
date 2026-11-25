@@ -109,68 +109,44 @@
         // -----------------------------
         // Theme
         // -----------------------------
-
         const themeRadios = document.querySelectorAll("input[name='theme']");
         const savedTheme = localStorage.getItem("theme") || "light";
 
         themeRadios.forEach(radio => {
-
-            if(radio.value === savedTheme){
+            if (radio.value === savedTheme) {
                 radio.checked = true;
             }
 
-            radio.addEventListener("change", function(){
-
+            radio.addEventListener("change", function () {
                 localStorage.setItem("theme", this.value);
-
                 applyTheme(this.value);
-
             });
-
         });
 
         applyTheme(savedTheme);
 
-
         // -----------------------------
         // Language
         // -----------------------------
-
         const language = document.getElementById("language");
+        language.value = localStorage.getItem("language") || "English";
 
-        language.value =
-            localStorage.getItem("language") || "English";
-
-        language.addEventListener("change", function(){
-
+        language.addEventListener("change", function () {
             localStorage.setItem("language", this.value);
 
-            if(typeof changeLanguage === "function"){
-
+            if (typeof changeLanguage === "function") {
                 changeLanguage(this.value);
-
             }
-
         });
-
 
         // -----------------------------
         // Notifications
         // -----------------------------
+        const notificationToggle = document.getElementById("notificationToggle");
+        notificationToggle.checked = localStorage.getItem("notifications") !== "false";
 
-        const notificationToggle =
-            document.getElementById("notificationToggle");
-
-        notificationToggle.checked =
-            localStorage.getItem("notifications") !== "false";
-
-        notificationToggle.onchange = function(){
-
-            localStorage.setItem(
-                "notifications",
-                this.checked
-            );
-
+        notificationToggle.onchange = function () {
+            localStorage.setItem("notifications", this.checked);
         };
 
     };
@@ -180,238 +156,116 @@
     // APPLY THEME
     // =======================================
 
-    function applyTheme(theme){
-
-        if(theme === "dark"){
-
+    function applyTheme(theme) {
+        if (theme === "dark") {
             document.body.classList.add("dark-mode");
-
-        }else{
-
+        } else {
             document.body.classList.remove("dark-mode");
-
         }
-
     }
 
 
     // =======================================
-    // CLEAR FAVORITES
+    // CLEAR FAVORITES (localStorage)
     // =======================================
 
-    function clearFavorites(){
-
+    function clearFavorites() {
         const userId = localStorage.getItem("userId");
 
-        if(!userId){
-
+        if (!userId) {
             alert("Please Login First");
-
             return;
-
         }
 
-        if(!confirm("Are you sure you want to clear all favorite brands?")){
-
+        if (!confirm("Are you sure you want to clear all favorite brands?")) {
             return;
-
         }
 
-        fetch("/api/favorites/clear/" + userId,{
+        let allFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        allFavorites = allFavorites.filter(item => String(item.userId) !== String(userId));
+        localStorage.setItem("favorites", JSON.stringify(allFavorites));
 
-            method:"DELETE"
-
-        })
-
-            .then(response=>{
-
-                if(response.ok){
-
-                    alert("All Favorite Brands Cleared");
-
-                }else{
-
-                    alert("Unable to clear favorites.");
-
-                }
-
-            })
-
-            .catch(error=>{
-
-                console.error(error);
-
-                alert("Server Error");
-
-            });
-
+        alert("All Favorite Brands Cleared");
     }
 
 
     // =======================================
-    // CLEAR HISTORY
+    // CLEAR HISTORY (localStorage)
     // =======================================
 
-    function clearHistory(){
-
+    function clearHistory() {
         const userId = localStorage.getItem("userId");
 
-        if(!userId){
-
+        if (!userId) {
             alert("Please Login First");
-
             return;
-
         }
 
-        if(!confirm("Are you sure you want to clear all history?")){
-
+        if (!confirm("Are you sure you want to clear all history?")) {
             return;
-
         }
 
-        fetch("/api/history/clear/" + userId,{
+        let allHistory = JSON.parse(localStorage.getItem("history")) || [];
+        allHistory = allHistory.filter(item => String(item.userId) !== String(userId));
+        localStorage.setItem("history", JSON.stringify(allHistory));
 
-            method:"DELETE"
-
-        })
-
-            .then(response=>{
-
-                if(response.ok){
-
-                    alert("History Cleared Successfully");
-
-                }else{
-
-                    alert("Unable to clear history.");
-
-                }
-
-            })
-
-            .catch(error=>{
-
-                console.error(error);
-
-                alert("Server Error");
-
-            });
-
+        alert("History Cleared Successfully");
     }
 
 
     // =======================================
-    // CLEAR SEARCH HISTORY
+    // CLEAR SEARCH HISTORY (localStorage)
     // =======================================
 
-    function clearSearchHistory(){
-
+    function clearSearchHistory() {
         const userId = localStorage.getItem("userId");
 
-        if(!userId){
-
+        if (!userId) {
             alert("Please Login First");
-
             return;
-
         }
 
-        if(!confirm("Are you sure you want to clear search history?")){
-
+        if (!confirm("Are you sure you want to clear search history?")) {
             return;
-
         }
 
-        fetch("/api/search/clear/" + userId,{
+        localStorage.removeItem("searchHistory");
 
-            method:"DELETE"
-
-        })
-
-            .then(response=>{
-
-                if(response.ok){
-
-                    alert("Search History Cleared");
-
-                }else{
-
-                    alert("Unable to clear search history.");
-
-                }
-
-            })
-
-            .catch(error=>{
-
-                console.error(error);
-
-                alert("Server Error");
-
-            });
-
+        alert("Search History Cleared");
     }
 
 
     // =======================================
-    // CLEAR ALL DATA
+    // CLEAR ALL DATA (localStorage)
     // =======================================
 
-    function clearAllData(){
-
+    function clearAllData() {
         const userId = localStorage.getItem("userId");
 
-        if(!userId){
-
+        if (!userId) {
             alert("Please Login First");
-
             return;
-
         }
 
-        if(!confirm("This will clear all your data. Continue?")){
-
+        if (!confirm("This will clear all your data. Continue?")) {
             return;
-
         }
 
-        fetch("/api/user/clear/" + userId,{
+        let allFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        allFavorites = allFavorites.filter(item => String(item.userId) !== String(userId));
+        localStorage.setItem("favorites", JSON.stringify(allFavorites));
 
-            method:"DELETE"
+        let allHistory = JSON.parse(localStorage.getItem("history")) || [];
+        allHistory = allHistory.filter(item => String(item.userId) !== String(userId));
+        localStorage.setItem("history", JSON.stringify(allHistory));
 
-        })
+        localStorage.removeItem("searchHistory");
 
-            .then(response=>{
-
-                if(response.ok){
-
-                    localStorage.clear();
-
-                    alert("All Data Cleared");
-
-                    window.location.href="/";
-
-                }else{
-
-                    alert("Unable to clear all data.");
-
-                }
-
-            })
-
-            .catch(error=>{
-
-                console.error(error);
-
-                alert("Server Error");
-
-            });
-
+        alert("All Data Cleared");
+        window.location.href = "index.html";
     }
 
 </script>
-
 
 </body>
 </html>
