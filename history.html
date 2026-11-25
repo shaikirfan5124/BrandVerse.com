@@ -66,180 +66,106 @@
     </div>
 
 
-    <script>
-
-        // JavaScript will come here in Step 3
-        // Load History
-let history =
-JSON.parse(localStorage.getItem("history")) || [];
-
-displayHistory();
-
-
-// Display Cards
-
-function displayHistory(){
-
-const list=document.getElementById("historyList");
-
-list.innerHTML="";
-
-if(history.length===0){
-
-list.innerHTML=`
-<div class="empty-history">
-
-No Recently Viewed Brands
-
-</div>
-`;
-
-return;
-
-}
-
-history.forEach((item,index)=>{
-
-list.innerHTML+=`
-
-<div class="history-card">
-
-<div class="history-left">
-
-<img
-src="${item.logo}"
-class="history-logo"
->
-
-<div class="history-info">
-
-<h2>${item.name}</h2>
-
-<p>Date : ${item.date}</p>
-
-<p>Time : ${item.time}</p>
-
-</div>
-
-</div>
-
-<div class="history-buttons">
-
-<button
-class="visit-btn"
-onclick="window.open('${item.website}','_blank')"
->
-
-Visit Again
-
-</button>
-
-<button
-class="remove-btn"
-onclick="removeHistory(${index})"
->
-
-Remove
-
-</button>
-
-</div>
-
-</div>
-
-`;
-
-});
-
-}
-
-
-// Search
-
-function searchHistory(){
-
-let value=document
-.getElementById("searchInput")
-.value
-.toLowerCase();
-
-let cards=document
-.querySelectorAll(".history-card");
-
-cards.forEach(card=>{
-
-let name=card
-.querySelector("h2")
-.innerText
-.toLowerCase();
-
-if(name.includes(value)){
-
-card.style.display="flex";
-
-}
-
-else{
-
-card.style.display="none";
-
-}
-
-});
-
-}
-
-
-// Remove One Item
-
-function removeHistory(index){
-
-history.splice(index,1);
-
-localStorage.setItem(
-"history",
-JSON.stringify(history)
-);
-
-displayHistory();
-
-}
-
-
-// Clear History
-
-function clearHistory(){
-
-if(confirm("Clear all history?")){
-
-localStorage.removeItem("history");
-
-history=[];
-
-displayHistory();
-
-}
-
-}
-
-    </script>
-
-    <script>
-
-// Apply Theme on Page Load
-
-window.onload = function(){
-
-    const theme = localStorage.getItem("theme");
-
-    if(theme === "dark"){
-
-        document.body.classList.add("dark-mode");
-
+<script>
+    const currentUserId = localStorage.getItem("userId");
+
+    // Load all history and filter for the logged-in user (newest first)
+    function getUserHistory() {
+        const allHistory = JSON.parse(localStorage.getItem("history")) || [];
+        if (!currentUserId) return [];
+        return allHistory.filter(item => item.userId === currentUserId).reverse();
     }
 
-};
+    displayHistory();
 
+    // Display Cards
+    function displayHistory() {
+        const list = document.getElementById("historyList");
+        const userHistory = getUserHistory();
+
+        list.innerHTML = "";
+
+        if (userHistory.length === 0) {
+            list.innerHTML = `
+                <div class="empty-history">
+                    No Recently Viewed Brands
+                </div>
+            `;
+            return;
+        }
+
+        userHistory.forEach((item) => {
+            // Supports both old and new property names safely
+            const brandName = item.brandName || item.name;
+            const brandImage = item.image || item.logo;
+            const visitDate = item.visitDate || item.date;
+            const visitTime = item.visitTime || item.time;
+
+            list.innerHTML += `
+                <div class="history-card">
+                    <div class="history-left">
+                        <img src="${brandImage}" class="history-logo">
+                        <div class="history-info">
+                            <h2>${brandName}</h2>
+                            <p>Date : ${visitDate}</p>
+                            <p>Time : ${visitTime}</p>
+                        </div>
+                    </div>
+                    <div class="history-buttons">
+                        <button
+                            class="visit-btn"
+                            onclick="window.open('${item.website}','_blank')"
+                        >
+                            Visit Again
+                        </button>
+                        <button
+                            class="remove-btn"
+                            onclick="removeHistory(${item.id})"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Search
+    function searchHistory() {
+        let value = document.getElementById("searchInput").value.toLowerCase();
+        let cards = document.querySelectorAll(".history-card");
+
+        cards.forEach(card => {
+            let name = card.querySelector("h2").innerText.toLowerCase();
+            card.style.display = name.includes(value) ? "flex" : "none";
+        });
+    }
+
+    // Remove One Item by its unique ID
+    function removeHistory(id) {
+        let allHistory = JSON.parse(localStorage.getItem("history")) || [];
+        allHistory = allHistory.filter(item => item.id !== id);
+        localStorage.setItem("history", JSON.stringify(allHistory));
+        displayHistory();
+    }
+
+    // Clear Current User's History
+    function clearHistory() {
+        if (confirm("Clear all history?")) {
+            let allHistory = JSON.parse(localStorage.getItem("history")) || [];
+            allHistory = allHistory.filter(item => item.userId !== currentUserId);
+            localStorage.setItem("history", JSON.stringify(allHistory));
+            displayHistory();
+        }
+    }
+
+    // Apply Theme on Page Load
+    window.addEventListener("load", () => {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+    });
 </script>
 
 </body>
